@@ -1,14 +1,23 @@
 #include <Arduino.h>
 #include <Wire.h>
+#include <TimeLib.h>
 
 //Click here to get the library: http://librarymanager/All#SparkFun_VCNL4040
 #include "SparkFun_VCNL4040_Arduino_Library.h"
 VCNL4040 proximitySensor;
 #define NUMBER_OF_SENSORS 4
+#define TIME_HEADER  "T"   // Header tag for serial time sync message
+#define TIME_REQUEST  7    // ASCII bell character requests a time sync message
 
 #define MUX_ADDR 0x70 //7-bit unshifted default I2C Address
 int LED_pin = 13;
 //Enables a specific port number
+
+time_t getTeensy3Time()
+{
+  return Teensy3Clock.get();
+}
+
 void enableMuxPort(byte portNumber)
 {
   if (portNumber > 7) portNumber = 7;
@@ -49,6 +58,7 @@ void setup() {
    Serial.begin(115200);
    pinMode(LED_BUILTIN, OUTPUT);
   Serial.println("SparkFun VCNL4040 Example");
+  setSyncProvider(getTeensy3Time);
 
 //  Wire.begin(); //Join i2c bus
 
@@ -73,36 +83,32 @@ void loop() {
    //Get proximity value. The value ranges from 0 to 65535
   //so we need an unsigned integer or a long.
   //unsigned int proxValue = proximitySensor.getProximity(); 
-
+Serial.print(now());
+Serial.print(" ");
  enableMuxPort(0);
   proximitySensor.begin();
   proxValue = proximitySensor.getProximity();
-  Serial.print("Proximity Value 0: ");
-  Serial.print(proxValue);
-  Serial.println();
+    Serial.print(proxValue);
+  Serial.print(" ");
   disableMuxPort(0);
 
   enableMuxPort(1);
   proximitySensor.begin();
   proxValue = proximitySensor.getProximity();
-  Serial.print("Proximity Value 1: ");
-  Serial.print(proxValue);
-  Serial.println();
+    Serial.print(proxValue);
+  Serial.print(" ");
   disableMuxPort(1);
 
   enableMuxPort(2);
   proximitySensor.begin();
   proxValue = proximitySensor.getProximity();
-  Serial.print("Proximity Value 2: ");
-  Serial.print(proxValue);
-  Serial.println();
+   Serial.print(proxValue);
+    Serial.print(" ");
   disableMuxPort(2);
 
   enableMuxPort(3);
   proximitySensor.begin();
-  proxValue = proximitySensor.getProximity();
-  Serial.print("Proximity Value 3: ");
-  Serial.print(proxValue);
+    Serial.print(proxValue);
   Serial.println();
   disableMuxPort(3); 
 
@@ -113,7 +119,14 @@ void loop() {
   digitalWrite(LED_pin, LOW);
    digitalWrite(LED_BUILTIN, LOW);
   delay(500); 
+  
+
 }
+
+
+
+
+
 
 
 
