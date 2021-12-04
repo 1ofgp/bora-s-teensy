@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include <Wire.h>
 #include <TimeLib.h>
+#include <SD.h>
+#include <SPI.h>
 
 //Click here to get the library: http://librarymanager/All#SparkFun_VCNL4040
 #include "SparkFun_VCNL4040_Arduino_Library.h"
@@ -11,7 +13,12 @@ VCNL4040 proximitySensor;
 
 #define MUX_ADDR 0x70 //7-bit unshifted default I2C Address
 int LED_pin = 13;
-//Enables a specific port number
+
+char filename[15];
+File logfile;
+char CardExists;
+boolean SDStat = false;
+const int chipSelect = BUILTIN_SDCARD;
 
 time_t getTeensy3Time()
 {
@@ -54,75 +61,102 @@ void disableMuxPort(byte portNumber)
 } 
 
 void setup() {
-  // put your setup code here, to run once:
-   Serial.begin(115200);
-   pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(115200);
+  pinMode(LED_BUILTIN, OUTPUT);
   Serial.println("SparkFun VCNL4040 Example");
   setSyncProvider(getTeensy3Time);
+  // **************** Create an output file. ****************************
+  int j;
+  strcpy(filename, "BS_000.TXT");
 
-//  Wire.begin(); //Join i2c bus
-
- /* if (proximitySensor.begin() == false)
+  if (SD.begin(chipSelect))
   {
-    Serial.println("Device not found. Please check wiring.");
-    while (1); //Freeze!
-  } */
-  
-/*for (byte x = 0; x < NUMBER_OF_SENSORS; x++)
-  {
-    enableMuxPort(x); //Tell mux to connect to port X
-    disableMuxPort(x);
-} */
+    Serial.println("QQQQQ");
+    for (uint8_t i = 0; i < 1000; i++) 
+    {
+      j=i/100;
+      filename[3] = '0' + j;
+      j=i%100;
+      filename[4] = '0' + j/10;
+      j=j%10;
+      filename[5] = '0' + j%10;
+      // create if does not exist, do not open existing, write, sync after write
+      if (! SD.exists(filename)) break;
+    }
+  } 
 
 }
 
 
 void loop() {
- unsigned int proxValue; 
-  // put your main code here, to run repeatedly:
-   //Get proximity value. The value ranges from 0 to 65535
-  //so we need an unsigned integer or a long.
-  //unsigned int proxValue = proximitySensor.getProximity(); 
-Serial.print(now());
-Serial.print(" ");
- enableMuxPort(0);
+  unsigned int proxValue; 
+  logfile = SD.open(filename, FILE_WRITE);
+ //------time--------------
+  Serial.print(now());
+  Serial.print(" ");
+  if (logfile)
+  {
+    logfile.print(now());
+    logfile.print(" ");
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
+  //--------------------------
+  enableMuxPort(0);
   proximitySensor.begin();
   proxValue = proximitySensor.getProximity();
-    Serial.print(proxValue);
+  Serial.print(proxValue);
   Serial.print(" ");
+  if (logfile)
+  {
+    logfile.print(proxValue);
+    logfile.print(" ");
+  }
   disableMuxPort(0);
-
+  //-------------------
   enableMuxPort(1);
   proximitySensor.begin();
   proxValue = proximitySensor.getProximity();
-    Serial.print(proxValue);
+  Serial.print(proxValue);
   Serial.print(" ");
+  if (logfile)
+  {
+    logfile.print(proxValue);
+    logfile.print(" ");
+  }
   disableMuxPort(1);
-
+//------------------------
   enableMuxPort(2);
   proximitySensor.begin();
   proxValue = proximitySensor.getProximity();
-   Serial.print(proxValue);
-    Serial.print(" ");
+  Serial.print(proxValue);
+  Serial.print(" ");
+  if (logfile)
+  {
+    logfile.print(proxValue);
+    logfile.print(" ");
+  }
   disableMuxPort(2);
-
+//------------------
   enableMuxPort(3);
   proximitySensor.begin();
-    Serial.print(proxValue);
+  Serial.print(proxValue);
   Serial.println();
+  if (logfile)
+  {
+    logfile.print(proxValue);
+    logfile.println();
+  }
   disableMuxPort(3); 
 
 
-  digitalWrite(LED_pin, HIGH);
-  digitalWrite(LED_BUILTIN, HIGH);
+
+  logfile.flush();
+  logfile.close();
   delay(500);
-  digitalWrite(LED_pin, LOW);
-   digitalWrite(LED_BUILTIN, LOW);
-  delay(500); 
-  
+  digitalWrite(LED_BUILTIN, LOW);
+  delay(500);
 
-}
-
+  }
 
 
 
