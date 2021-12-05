@@ -147,9 +147,6 @@ void loop() {
     logfile.println();
   }
   disableMuxPort(3); 
-
-
-
   logfile.flush();
   logfile.close();
   delay(500);
