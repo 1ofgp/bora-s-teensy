@@ -168,9 +168,6 @@ float temperature1 = 0;
     logfile.println();
   }
   disableMuxPort(3); 
-
-
-
   logfile.flush();
   logfile.close();
   delay(500);
