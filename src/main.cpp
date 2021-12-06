@@ -12,6 +12,7 @@ VCNL4040 proximitySensor;
 #define TIME_REQUEST  7    // ASCII bell character requests a time sync message
 
 #define MUX_ADDR 0x70 //7-bit unshifted default I2C Address
+#define temperature1Pin 23
 int LED_pin = 13;
 
 char filename[15];
@@ -63,6 +64,7 @@ void disableMuxPort(byte portNumber)
 void setup() {
   Serial.begin(115200);
   pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(temperature1Pin, INPUT);
   Serial.println("SparkFun VCNL4040 Example");
   setSyncProvider(getTeensy3Time);
   // **************** Create an output file. ****************************
@@ -101,6 +103,25 @@ void loop() {
     digitalWrite(LED_BUILTIN, HIGH);
   }
   //--------------------------
+//-----temperature-----
+
+float temperature1 = 0;
+  for (int j = 0; j<500; j++)
+    {
+    
+      temperature1 = temperature1 + analogRead(temperature1Pin);
+    }
+   temperature1 = sqrt(((1.8639 - (temperature1/500./1024*3.3))/3.88*1000000) + 2196200) - 1481.96;
+  Serial.print(temperature1);
+  Serial.print(" ");
+
+   if (logfile)
+  {
+    logfile.print(temperature1);
+    logfile.print(" ");
+  }
+//------------------------------
+
   enableMuxPort(0);
   proximitySensor.begin();
   proxValue = proximitySensor.getProximity();
